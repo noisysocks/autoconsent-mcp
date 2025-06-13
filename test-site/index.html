@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Test Site - Cookie Popup Demo</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 20px;
+                background-color: #f5f5f5;
+            }
+
+            .main-content {
+                max-width: 800px;
+                margin: 0 auto;
+                background: white;
+                padding: 40px;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+
+            h1 {
+                color: #333;
+                text-align: center;
+            }
+
+            .test-elements {
+                margin: 30px 0;
+            }
+
+            .test-button {
+                background: #007bff;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 4px;
+                cursor: pointer;
+                margin: 10px;
+            }
+
+            .test-button:hover {
+                background: #0056b3;
+            }
+
+            .test-select {
+                padding: 8px;
+                margin: 10px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+            }
+
+            /* Cookie Banner Styles */
+            .cookie-banner {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: #2c3e50;
+                color: white;
+                padding: 20px;
+                z-index: 9999;
+                box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+            }
+
+            .cookie-banner.hidden {
+                display: none;
+            }
+
+            .cookie-content {
+                max-width: 1200px;
+                margin: 0 auto;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 20px;
+            }
+
+            .cookie-text {
+                flex: 1;
+                min-width: 300px;
+            }
+
+            .cookie-buttons {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .cookie-button {
+                padding: 12px 24px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-weight: bold;
+                transition: all 0.3s ease;
+            }
+
+            .accept-all {
+                background: #27ae60;
+                color: white;
+            }
+
+            .accept-all:hover {
+                background: #219a52;
+            }
+
+            .reject-all {
+                background: #e74c3c;
+                color: white;
+            }
+
+            .reject-all:hover {
+                background: #c0392b;
+            }
+
+            .manage-preferences {
+                background: transparent;
+                color: white;
+                border: 2px solid white;
+            }
+
+            .manage-preferences:hover {
+                background: white;
+                color: #2c3e50;
+            }
+
+            /* Modal for preferences */
+            .preferences-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.7);
+                z-index: 10000;
+                display: none;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .preferences-modal.visible {
+                display: flex;
+            }
+
+            .preferences-content {
+                background: white;
+                padding: 30px;
+                border-radius: 8px;
+                max-width: 600px;
+                width: 90%;
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+
+            .preference-item {
+                margin: 20px 0;
+                padding: 15px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+            }
+
+            .preference-toggle {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .toggle-switch {
+                position: relative;
+                display: inline-block;
+                width: 60px;
+                height: 34px;
+            }
+
+            .toggle-switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+            .slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: #ccc;
+                transition: 0.4s;
+                border-radius: 34px;
+            }
+
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 26px;
+                width: 26px;
+                left: 4px;
+                bottom: 4px;
+                background-color: white;
+                transition: 0.4s;
+                border-radius: 50%;
+            }
+
+            input:checked + .slider {
+                background-color: #2196f3;
+            }
+
+            input:checked + .slider:before {
+                transform: translateX(26px);
+            }
+
+            /* Shadow DOM test container */
+            .shadow-host {
+                border: 2px dashed #999;
+                padding: 20px;
+                margin: 20px 0;
+                background: #f9f9f9;
+            }
+
+            /* Status indicators */
+            .status {
+                margin: 20px 0;
+                padding: 15px;
+                border-radius: 4px;
+                text-align: center;
+                font-weight: bold;
+            }
+
+            .status.hidden {
+                display: none;
+            }
+
+            .status.accepted {
+                background: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
+
+            .status.rejected {
+                background: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
+
+            .status.preferences-saved {
+                background: #d1ecf1;
+                color: #0c5460;
+                border: 1px solid #bee5eb;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="main-content">
+            <h1>Test Site for Autoconsent MCP Server</h1>
+
+            <p>
+                This page contains various elements for testing the Autoconsent
+                MCP Server tools:
+            </p>
+
+            <div class="test-elements">
+                <h2>Test Elements</h2>
+
+                <button
+                    class="test-button"
+                    id="test-button"
+                    onclick="showMessage('Button clicked!')"
+                >
+                    Click Me
+                </button>
+
+                <select class="test-select" id="test-select">
+                    <option value="">Select an option</option>
+                    <option value="option1">Option 1</option>
+                    <option value="option2">Option 2</option>
+                    <option value="option3">Option 3</option>
+                </select>
+
+                <div class="shadow-host" id="shadow-host">
+                    <p>This div contains a shadow DOM with nested elements.</p>
+                </div>
+            </div>
+
+            <div class="status hidden" id="consent-status"></div>
+
+            <h2>Page Content</h2>
+            <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+                enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                nisi ut aliquip ex ea commodo consequat.
+            </p>
+
+            <p>
+                Duis aute irure dolor in reprehenderit in voluptate velit esse
+                cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+                cupidatat non proident, sunt in culpa qui officia deserunt
+                mollit anim id est laborum.
+            </p>
+        </div>
+
+        <!-- Cookie Banner -->
+        <div class="cookie-banner" id="cookie-banner">
+            <div class="cookie-content">
+                <div class="cookie-text">
+                    <h3>We use cookies</h3>
+                    <p>
+                        This website uses cookies to enhance your browsing
+                        experience and provide personalized content. By
+                        continuing to browse, you consent to our use of cookies.
+                    </p>
+                </div>
+                <div class="cookie-buttons">
+                    <button
+                        class="cookie-button accept-all"
+                        id="accept-all"
+                        onclick="acceptAllCookies()"
+                    >
+                        Accept All
+                    </button>
+                    <button
+                        class="cookie-button reject-all"
+                        id="reject-all"
+                        onclick="rejectAllCookies()"
+                    >
+                        Reject All
+                    </button>
+                    <button
+                        class="cookie-button manage-preferences"
+                        id="manage-preferences"
+                        onclick="showPreferences()"
+                    >
+                        Manage Preferences
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preferences Modal -->
+        <div class="preferences-modal" id="preferences-modal">
+            <div class="preferences-content">
+                <h2>Cookie Preferences</h2>
+                <p>Choose which types of cookies you want to allow:</p>
+
+                <div class="preference-item">
+                    <div class="preference-toggle">
+                        <div>
+                            <h4>Necessary Cookies</h4>
+                            <p>Required for basic site functionality</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input
+                                type="checkbox"
+                                id="necessary-cookies"
+                                checked
+                                disabled
+                            />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="preference-item">
+                    <div class="preference-toggle">
+                        <div>
+                            <h4>Analytics Cookies</h4>
+                            <p>
+                                Help us understand how visitors interact with
+                                our website
+                            </p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="analytics-cookies" />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="preference-item">
+                    <div class="preference-toggle">
+                        <div>
+                            <h4>Marketing Cookies</h4>
+                            <p>Used to deliver relevant advertisements</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="marketing-cookies" />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px">
+                    <button
+                        class="cookie-button accept-all"
+                        onclick="savePreferences()"
+                        style="margin-right: 10px"
+                    >
+                        Save Preferences
+                    </button>
+                    <button
+                        class="cookie-button"
+                        onclick="closePreferences()"
+                        style="background: #6c757d"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Cookie consent functionality
+            function acceptAllCookies() {
+                document
+                    .getElementById("cookie-banner")
+                    .classList.add("hidden");
+                showStatus("All cookies accepted!", "accepted");
+                console.log("User accepted all cookies");
+            }
+
+            function rejectAllCookies() {
+                document
+                    .getElementById("cookie-banner")
+                    .classList.add("hidden");
+                showStatus("All cookies rejected!", "rejected");
+                console.log("User rejected all cookies");
+            }
+
+            function showPreferences() {
+                document
+                    .getElementById("preferences-modal")
+                    .classList.add("visible");
+            }
+
+            function closePreferences() {
+                document
+                    .getElementById("preferences-modal")
+                    .classList.remove("visible");
+            }
+
+            function savePreferences() {
+                const necessary =
+                    document.getElementById("necessary-cookies").checked;
+                const analytics =
+                    document.getElementById("analytics-cookies").checked;
+                const marketing =
+                    document.getElementById("marketing-cookies").checked;
+
+                document
+                    .getElementById("cookie-banner")
+                    .classList.add("hidden");
+                document
+                    .getElementById("preferences-modal")
+                    .classList.remove("visible");
+
+                showStatus(
+                    `Preferences saved! Analytics: ${analytics}, Marketing: ${marketing}`,
+                    "preferences-saved",
+                );
+                console.log("Cookie preferences saved:", {
+                    necessary,
+                    analytics,
+                    marketing,
+                });
+            }
+
+            function showStatus(message, type) {
+                const status = document.getElementById("consent-status");
+                status.textContent = message;
+                status.className = `status ${type}`;
+
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    status.classList.add("hidden");
+                }, 5000);
+            }
+
+            function showMessage(message) {
+                alert(message);
+                console.log("Test button clicked:", message);
+            }
+
+            // Create shadow DOM for testing
+            document.addEventListener("DOMContentLoaded", function () {
+                const shadowHost = document.getElementById("shadow-host");
+                const shadowRoot = shadowHost.attachShadow({ mode: "open" });
+
+                shadowRoot.innerHTML = `
+                <style>
+                    .shadow-content {
+                        background: #e9ecef;
+                        padding: 15px;
+                        border-radius: 4px;
+                        margin: 10px 0;
+                    }
+                    .shadow-button {
+                        background: #6f42c1;
+                        color: white;
+                        border: none;
+                        padding: 8px 16px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                    }
+                    .shadow-button:hover {
+                        background: #5a32a3;
+                    }
+                </style>
+                <div class="shadow-content">
+                    <h4>Content inside Shadow DOM</h4>
+                    <p>This content is encapsulated in a shadow DOM.</p>
+                    <button class="shadow-button" onclick="alert('Shadow DOM button clicked!')">
+                        Shadow Button
+                    </button>
+                </div>
+            `;
+            });
+
+            // Add some console logs for testing
+            console.log("Test page loaded successfully");
+            console.log("Available test elements:", {
+                cookieBanner: !!document.getElementById("cookie-banner"),
+                acceptButton: !!document.getElementById("accept-all"),
+                rejectButton: !!document.getElementById("reject-all"),
+                preferencesButton:
+                    !!document.getElementById("manage-preferences"),
+                testButton: !!document.getElementById("test-button"),
+                testSelect: !!document.getElementById("test-select"),
+                shadowHost: !!document.getElementById("shadow-host"),
+            });
+        </script>
+    </body>
+</html>
