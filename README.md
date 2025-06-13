@@ -120,6 +120,8 @@ Add the following to your Claude Desktop configuration:
 }
 ```
 
-## License
+## Attribution and license
 
-This MCP server is licensed under the ISC License. This means you are free to use, modify, and distribute the software, subject to the terms and conditions of the ISC License.
+This project is based on the Puppeteer MCP server from https://github.com/modelcontextprotocol/servers-archived/tree/main/src/puppeteer.
+
+This MCP server is licensed under the MIT License. This means you are free to use, modify, and distribute the software, subject to the terms and conditions of the MIT License.

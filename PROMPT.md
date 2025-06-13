@@ -18,24 +18,49 @@ There is no way to test the optIn functionality of a rule, so don't bother with 
 
 ```json
 {
-  name: "simple-cmp",
-  detectCmp: [{ exists: "#cookie-banner" }],
-  detectPopup: [{ visible: "#cookie-banner" }],
-  optOut: [{ click: "#reject-all" }],
-  optIn: [{ click: "#accept-all" }]
+  "name": "simple-cmp",
+  "detectCmp": [{ "exists": "#cookie-banner" }],
+  "detectPopup": [{ "visible": "#cookie-banner" }],
+  "optOut": [{ "click": "#reject-all" }],
+  "optIn": [{ "click": "#accept-all" }]
 }
 ```
 
 ```json
 {
-  name: "multi-step-cmp",
-  detectCmp: [{ exists: "#cookie-banner" }],
-  detectPopup: [{ visible: "#cookie-banner" }],
-  optOut: [
-    { click: "#manage-preferences" },
-    { waitForThenClick: ".reject-all" },
+  "name": "multi-step-cmp",
+  "detectCmp": [{ "exists": "#cookie-banner" }],
+  "detectPopup": [{ "visible": "#cookie-banner" }],
+  "optOut": [
+    { "click": "#manage-preferences" },
+    { "waitForThenClick": ".reject-all" }
   ],
-  optIn: [{ click: "#accept-all" }]
+  "optIn": [{ "click": "#accept-all" }]
+}
+```
+
+```json
+{
+    "name": "advanced-settings-cmp",
+    "detectCmp": [{ "exists": "#cookie-banner" }],
+    "detectPopup": [{ "visible": "#cookie-banner" }],
+    "optIn": [{ "waitForThenClick": "#accept-all" }],
+    "optOut": [
+      {
+          "click": "#settings-button"
+      },
+      {
+        "waitForVisible": "#settings-dialog"
+      },
+      {
+          "click": "#settings-dialog input[type=checkbox]:not([disabled]):checked",
+          "all": true,
+          "optional": true
+      },
+      {
+          "click": "#save-button"
+      }
+    ]
 }
 ```
 

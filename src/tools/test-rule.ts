@@ -91,7 +91,7 @@ export async function testRule(
 
   await injectAutoconsent(page);
   page.frames().forEach(injectAutoconsent);
-  page.on("framenavigated", injectAutoconsent);
+  // page.on("framenavigated", injectAutoconsent);
 
   await new Promise((resolve) => setTimeout(resolve, 5000));
 
