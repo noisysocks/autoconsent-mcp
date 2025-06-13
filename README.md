@@ -120,45 +120,6 @@ Add the following to your Claude Desktop configuration:
 }
 ```
 
-## Example Usage
-
-Here's an example prompt you can give to Claude Desktop:
-
-```
-Help me write an Autoconsent rule for the CMP on https://example-site.com.
-
-First, use the navigate tool to navigate to the site.
-
-Then, use the screenshot tool to see the consent notice.
-
-Then, use the search_html and print_element tools search the HTML for text that appears in the consent notice and inspect the consent popup HTML.
-
-Next, create an Autoconsent rule. Examples of Autoconsent rules:
-
-{
-  name: "simple-cmp",
-  detectCmp: [{ exists: "#cookie-banner" }],
-  detectPopup: [{ visible: "#cookie-banner" }],
-  optOut: [{ click: "#reject-all" }],
-  optIn: [{ click: "#accept-all" }]
-}
-
-{
-  name: "multi-step-cmp",
-  detectCmp: [{ exists: "#cookie-banner" }],
-  detectPopup: [{ visible: "#cookie-banner" }],
-  optOut: [
-    { click: "#manage-preferences" },
-    { waitForThenClick: ".reject-all" },
-  ],
-  optIn: [{ click: "#accept-all" }]
-}
-
-Finally, once we have a draft rule, test it using the test_rule tool to see if it works correctly. Note that test_rule will run the rule in a separate browser page and will not affect the page that you previously navigated to. Screenshotting, clicking, and other tools will not work in the test_rule page.
-
-There is no way to test the optIn functionality of a rule, so don't bother with this for now.
-```
-
 ## License
 
 This MCP server is licensed under the ISC License. This means you are free to use, modify, and distribute the software, subject to the terms and conditions of the ISC License.
