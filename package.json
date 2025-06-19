@@ -13,7 +13,8 @@
     "test:integration": "jest --config jest.integration.config.js",
     "test:watch": "jest --watch",
     "test:integration:watch": "jest --config jest.integration.config.js --watch",
-    "serve-test-site": "http-server test-site -p 8080"
+    "serve-test-site": "http-server test-site -p 8080",
+    "inspect": "npm run build && mcp-inspector node dist/index.js"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +27,7 @@
     "zod": "^3.25.63"
   },
   "devDependencies": {
+    "@modelcontextprotocol/inspector": "^0.14.3",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.11.19",
     "http-server": "^14.1.1",
