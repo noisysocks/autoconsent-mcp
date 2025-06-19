@@ -13,6 +13,7 @@ import {
 import puppeteer, { Browser, Page } from "puppeteer";
 import { searchHTML, printElement } from "./tools/dom";
 import { testRule } from "./tools/test-rule";
+import { resetBrowserData } from "./tools/browser-reset";
 import type { AutoConsentCMPRule } from "@duckduckgo/autoconsent";
 
 // Define the tools
@@ -26,6 +27,15 @@ const TOOLS: Tool[] = [
         url: { type: "string", description: "URL to navigate to" },
       },
       required: ["url"],
+    },
+  },
+  {
+    name: "reload",
+    description: "Reload the current page",
+    inputSchema: {
+      type: "object",
+      properties: {},
+      required: [],
     },
   },
   {
@@ -130,6 +140,33 @@ const TOOLS: Tool[] = [
       required: ["url", "rule"],
     },
   },
+  {
+    name: "reset_browser_data",
+    description:
+      "Reset browser data including cookies, cache, localStorage, and sessionStorage",
+    inputSchema: {
+      type: "object",
+      properties: {
+        clearCookies: {
+          type: "boolean",
+          description: "Clear browser cookies (default: true)",
+        },
+        clearCache: {
+          type: "boolean",
+          description: "Clear browser cache (default: true)",
+        },
+        clearLocalStorage: {
+          type: "boolean",
+          description: "Clear localStorage (default: true)",
+        },
+        clearSessionStorage: {
+          type: "boolean",
+          description: "Clear sessionStorage (default: true)",
+        },
+      },
+      required: [],
+    },
+  },
 ];
 
 // Global state
@@ -175,6 +212,19 @@ async function handleToolCall(
           {
             type: "text",
             text: `Navigated to ${args.url}`,
+          },
+        ],
+        isError: false,
+      };
+
+    case "reload":
+      await page.reload({ waitUntil: "domcontentloaded" });
+      const currentUrl = page.url();
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Reloaded page: ${currentUrl}`,
           },
         ],
         isError: false,
@@ -415,6 +465,44 @@ async function handleToolCall(
             {
               type: "text",
               text: `Failed to test rule: ${(error as Error).message}`,
+            },
+          ],
+          isError: true,
+        };
+      }
+
+    case "reset_browser_data":
+      try {
+        const options = {
+          clearCookies: args.clearCookies ?? true,
+          clearCache: args.clearCache ?? true,
+          clearLocalStorage: args.clearLocalStorage ?? true,
+          clearSessionStorage: args.clearSessionStorage ?? true,
+        };
+
+        await resetBrowserData(page, options);
+
+        const clearedItems = [];
+        if (options.clearCookies) clearedItems.push("cookies");
+        if (options.clearCache) clearedItems.push("cache");
+        if (options.clearLocalStorage) clearedItems.push("localStorage");
+        if (options.clearSessionStorage) clearedItems.push("sessionStorage");
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Successfully cleared: ${clearedItems.join(", ")}`,
+            },
+          ],
+          isError: false,
+        };
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Failed to reset browser data: ${(error as Error).message}`,
             },
           ],
           isError: true,

@@ -9,6 +9,7 @@ import type {
   OptOutResultMessage,
 } from "@duckduckgo/autoconsent";
 import path from "path";
+import { resetBrowserData } from "./browser-reset";
 
 type TestRuleSettings = {
   viewportWidth?: number;
@@ -40,10 +41,8 @@ export async function testRule(
   // Set viewport
   await page.setViewport({ width: viewportWidth, height: viewportHeight });
 
-  // Reset data - clear cookies and cache
-  const client = await page.target().createCDPSession();
-  await client.send("Network.clearBrowserCookies");
-  await client.send("Network.clearBrowserCache");
+  // Reset browser data - clear cookies, cache, and storage
+  await resetBrowserData(page);
 
   const messages: ContentScriptMessage[] = [];
 
