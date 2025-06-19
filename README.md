@@ -2,6 +2,10 @@
 
 A Model Context Protocol server that provides browser automation capabilities specifically designed for creating and testing Autoconsent rules. This server enables LLMs to interact with web pages, inspect consent management platforms (CMPs), and test Autoconsent rules in a real browser environment.
 
+<a href="https://glama.ai/mcp/servers/@noisysocks/autoconsent-mcp">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@noisysocks/autoconsent-mcp/badge" alt="Autoconsent MCP server" />
+</a>
+
 > [!CAUTION]
 > This server can access local files and local/internal IP addresses since it runs a browser on your machine. Exercise caution when using this MCP server to ensure this does not expose any sensitive data.
 
