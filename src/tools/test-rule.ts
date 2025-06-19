@@ -1,5 +1,5 @@
 import fs from "fs";
-import { Browser, Frame, Page } from "puppeteer";
+import { Frame, Page } from "puppeteer";
 import type {
   AutoConsentCMPRule,
   ContentScriptMessage,
@@ -32,17 +32,18 @@ async function injectAutoconsent(page: Page | Frame) {
 }
 
 export async function testRule(
-  browser: Browser,
+  page: Page,
   url: string,
   rule: AutoConsentCMPRule,
   { viewportWidth = 1280, viewportHeight = 720 }: TestRuleSettings = {},
 ): Promise<TestRuleResults> {
-  if (!browser.connected) {
-    throw new Error("Browser is not connected");
-  }
-
-  const page = await browser.newPage();
+  // Set viewport
   await page.setViewport({ width: viewportWidth, height: viewportHeight });
+
+  // Reset data - clear cookies and cache
+  const client = await page.target().createCDPSession();
+  await client.send("Network.clearBrowserCookies");
+  await client.send("Network.clearBrowserCache");
 
   const messages: ContentScriptMessage[] = [];
 

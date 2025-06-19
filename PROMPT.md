@@ -10,7 +10,7 @@ Then, use the search_html and print_element tools search the HTML for text that 
 
 Next, create an Autoconsent rule. Once we have a draft rule, test it using the test_rule tool to see if it works correctly.
 
-Note that test_rule will run the rule in a separate browser page and will not affect the page that you previously navigated to. Screenshotting, clicking, and other tools will not work in the test_rule page.
+Note that test_rule will use the shared browser context but will reset all data (cookies, localStorage, sessionStorage) and reload the page before testing.
 
 There is no way to test the optIn functionality of a rule, so don't bother with this for now.
 

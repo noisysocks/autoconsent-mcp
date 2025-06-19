@@ -379,12 +379,8 @@ async function handleToolCall(
 
     case "test_rule":
       try {
-        if (!browser) {
-          throw new Error("Browser not initialized");
-        }
-
         const rule = args.rule as AutoConsentCMPRule;
-        const results = await testRule(browser, args.url, rule);
+        const results = await testRule(page, args.url, rule);
 
         let output = `Test results for rule "${rule.name}" on ${args.url}:\n\n`;
 

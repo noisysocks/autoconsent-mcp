@@ -15,7 +15,7 @@
  * - Performance characteristics
  */
 
-import puppeteer, { Browser } from "puppeteer";
+import puppeteer, { Browser, Page } from "puppeteer";
 import { testRule } from "../../src/tools/test-rule";
 
 const VIEWPORT_WIDTH = 1280;
@@ -33,6 +33,7 @@ const TEST_RULE = {
 
 describe("Rule Integration Tests", () => {
   let browser: Browser;
+  let page: Page;
 
   beforeAll(async () => {
     // Check if localhost:8080 is accessible
@@ -58,6 +59,16 @@ describe("Rule Integration Tests", () => {
     });
   });
 
+  beforeEach(async () => {
+    page = await browser.newPage();
+  });
+
+  afterEach(async () => {
+    if (page) {
+      await page.close();
+    }
+  });
+
   afterAll(async () => {
     if (browser) {
       await browser.close();
@@ -66,7 +77,7 @@ describe("Rule Integration Tests", () => {
 
   describe("testRule", () => {
     test("should detect CMP and popup on test site", async () => {
-      const results = await testRule(browser, TEST_URL, TEST_RULE, {
+      const results = await testRule(page, TEST_URL, TEST_RULE, {
         viewportWidth: VIEWPORT_WIDTH,
         viewportHeight: VIEWPORT_HEIGHT,
       });
@@ -85,7 +96,7 @@ describe("Rule Integration Tests", () => {
     }, 15000);
 
     test("should handle opt-out action", async () => {
-      const results = await testRule(browser, TEST_URL, TEST_RULE, {
+      const results = await testRule(page, TEST_URL, TEST_RULE, {
         viewportWidth: VIEWPORT_WIDTH,
         viewportHeight: VIEWPORT_HEIGHT,
       });
@@ -100,12 +111,7 @@ describe("Rule Integration Tests", () => {
     test("should handle different viewport sizes", async () => {
       const smallViewport = { viewportWidth: 800, viewportHeight: 600 };
 
-      const results = await testRule(
-        browser,
-        TEST_URL,
-        TEST_RULE,
-        smallViewport,
-      );
+      const results = await testRule(page, TEST_URL, TEST_RULE, smallViewport);
 
       expect(results).toBeDefined();
       expect(results.errors).toBeDefined();
@@ -116,7 +122,7 @@ describe("Rule Integration Tests", () => {
       const invalidUrl = "http://invalid-url-that-does-not-exist";
 
       await expect(
-        testRule(browser, invalidUrl, TEST_RULE, {
+        testRule(page, invalidUrl, TEST_RULE, {
           viewportWidth: VIEWPORT_WIDTH,
           viewportHeight: VIEWPORT_HEIGHT,
         }),
@@ -132,7 +138,7 @@ describe("Rule Integration Tests", () => {
         optIn: [{ click: "#reject-all" }],
       };
 
-      const results = await testRule(browser, TEST_URL, customRule, {
+      const results = await testRule(page, TEST_URL, customRule, {
         viewportWidth: VIEWPORT_WIDTH,
         viewportHeight: VIEWPORT_HEIGHT,
       });
@@ -150,7 +156,7 @@ describe("Rule Integration Tests", () => {
         optIn: [{ click: "#non-existent-accept" }],
       };
 
-      const results = await testRule(browser, TEST_URL, invalidRule, {
+      const results = await testRule(page, TEST_URL, invalidRule, {
         viewportWidth: VIEWPORT_WIDTH,
         viewportHeight: VIEWPORT_HEIGHT,
       });
@@ -162,15 +168,6 @@ describe("Rule Integration Tests", () => {
       expect(results.cmpDetectedMessage).toBeUndefined();
       expect(results.popupFoundMessage).toBeUndefined();
     }, 15000);
-
-    test("should handle disconnected browser gracefully", async () => {
-      const disconnectedBrowser = await puppeteer.launch({ headless: true });
-      await disconnectedBrowser.close();
-
-      await expect(
-        testRule(disconnectedBrowser, TEST_URL, TEST_RULE),
-      ).rejects.toThrow("Browser is not connected");
-    });
   });
 
   describe("Rule validation", () => {
@@ -183,7 +180,7 @@ describe("Rule Integration Tests", () => {
         optIn: [{ click: "#accept-all" }],
       };
 
-      const results = await testRule(browser, TEST_URL, minimalRule);
+      const results = await testRule(page, TEST_URL, minimalRule);
 
       expect(results).toBeDefined();
       expect(results.cmpDetectedMessage).toBeDefined();
@@ -207,7 +204,7 @@ describe("Rule Integration Tests", () => {
         optIn: [{ click: "#accept-all" }],
       };
 
-      const results = await testRule(browser, TEST_URL, complexRule);
+      const results = await testRule(page, TEST_URL, complexRule);
 
       expect(results).toBeDefined();
       // Complex rules might have different behavior
@@ -219,7 +216,7 @@ describe("Rule Integration Tests", () => {
     test("should complete within reasonable time", async () => {
       const startTime = Date.now();
 
-      await testRule(browser, TEST_URL, TEST_RULE);
+      await testRule(page, TEST_URL, TEST_RULE);
 
       const endTime = Date.now();
       const duration = endTime - startTime;
@@ -229,16 +226,23 @@ describe("Rule Integration Tests", () => {
     });
 
     test("should handle multiple concurrent tests", async () => {
-      const promises = Array(3)
-        .fill(null)
-        .map(() =>
-          testRule(browser, TEST_URL, TEST_RULE, {
-            viewportWidth: VIEWPORT_WIDTH,
-            viewportHeight: VIEWPORT_HEIGHT,
-          }),
-        );
+      const pages = await Promise.all(
+        Array(3)
+          .fill(null)
+          .map(() => browser.newPage()),
+      );
+
+      const promises = pages.map((testPage) =>
+        testRule(testPage, TEST_URL, TEST_RULE, {
+          viewportWidth: VIEWPORT_WIDTH,
+          viewportHeight: VIEWPORT_HEIGHT,
+        }),
+      );
 
       const results = await Promise.all(promises);
+
+      // Clean up test pages
+      await Promise.all(pages.map((testPage) => testPage.close()));
 
       expect(results).toHaveLength(3);
       results.forEach((result) => {
